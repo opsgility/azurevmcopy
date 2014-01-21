@@ -187,6 +187,14 @@ if($PSCmdlet.ParameterSetName -eq "VNET"){
 else
 {
     $g_DestinationStorageAccountLocation = $Location 
+
+    $existingSubnet = $sourceVM | Get-AzureSubnet
+
+    if($existingSubnet -ne $null)
+    {
+        Write-Host "Not deploying to a virtual network. Existing Subnet will be removed from Virtual Machine configuration." -ForegroundColor Yellow
+    }
+    
 }
 
 if((Get-AzureService -ServiceName $DestinationServiceName -ErrorAction SilentlyContinue ) -eq $null)
@@ -482,6 +490,14 @@ if($PSCmdlet.ParameterSetName -eq "VNET")
 }
 else
 {
+    $existingSubnet = $vmConfig | Get-AzureSubnet
+
+    # Remove existing subnet since we are not deploying to a virtual network.
+    if($existingSubnet -ne $null)
+    {
+        $vmConfig.ConfigurationSets[0].SubnetNames = $null
+    }
+
     if($serviceExists -eq $false)
     {
         $vmConfig | New-AzureVM -ServiceName $DestinationServiceName -Location $Location
